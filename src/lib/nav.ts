@@ -6,6 +6,7 @@ import {
   Kanban,
   ListChecks,
   Settings,
+  Tags,
   Sparkles,
   Users,
   type LucideIcon,
@@ -49,10 +50,13 @@ export const SETTINGS_ITEM: NavItem = {
  */
 export function appNavGroups({
   agenda = false,
+  servicios = false,
   role,
 }: {
   /** 015 — "Citas" solo existe si esta instancia encendió la agenda. */
   agenda?: boolean;
+  /** 031 — "Servicios" solo existe con el módulo SERVICIOS encendido. */
+  servicios?: boolean;
   /** #86 — La guía de inicio solo para quien puede configurar. */
   role?: string | null;
 }): NavGroup[] {
@@ -75,8 +79,15 @@ export function appNavGroups({
     { href: "/lab", label: "Laboratorio", icon: FlaskConical }
   );
 
+  // 031 — Los módulos de negocio (catálogo, y los que vengan: membresías,
+  // stock, pedidos) van en su propio grupo. Sin ninguno encendido, el grupo
+  // no existe: una instancia de solo-WhatsApp ve el menú de siempre.
+  const negocio: NavItem[] = [];
+  if (servicios) negocio.push({ href: "/services", label: "Servicios", icon: Tags });
+
   return [
     { title: "Trabajo", items: trabajo },
+    ...(negocio.length > 0 ? [{ title: "Negocio", items: negocio }] : []),
     { title: "Agente", items: agente },
     // 019 — Se mide al final: primero se atiende y se organiza.
     { items: [{ href: "/results", label: "Resultados", icon: ChartColumn }] },
@@ -137,6 +148,9 @@ export function settingsSections({
     { href: "/settings/team", label: "Equipo" },
   ];
   if (atribucion) negocio.push({ href: "/settings/ads", label: "Anuncios" });
+  // 031 — Siempre visible: dice qué módulos hay encendidos y cómo encender
+  // los demás. No configura nada; las banderas viven en el despliegue.
+  negocio.push({ href: "/settings/modules", label: "Módulos" });
 
   return [
     { title: "Canales", links: canales },

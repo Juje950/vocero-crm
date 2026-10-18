@@ -27,6 +27,7 @@ import {
   ordenarParaElTurno,
   quedanDebidos,
 } from "@/server/ai/orden-turno";
+import { catalogoParaAgente } from "@/server/servicios/agent";
 import { agendaEnabled } from "@/server/agenda/flag";
 import { bookSlot, offerSlots } from "@/server/agenda/agent";
 import { getOffers, mapaDeHuecosParaModelo } from "@/server/agenda/offers";
@@ -248,6 +249,8 @@ export async function runAgentTurn(
     .orderBy(asc(schema.pipelineStage.position));
 
   const agenda = agendaEnabled();
+  // 031 — El catálogo de servicios, solo con el módulo encendido.
+  const servicios = await catalogoParaAgente(organizationId);
 
   /**
    * 015 — Los huecos vigentes, con su instante exacto.
@@ -275,7 +278,7 @@ export async function runAgentTurn(
   const messages: ChatMessage[] = [
     {
       role: "system",
-      content: buildAgentSystemPrompt({ profile, kb, stages, agenda }),
+      content: buildAgentSystemPrompt({ profile, kb, stages, agenda, servicios }),
     },
     ...history
       .filter((m) => m.text)

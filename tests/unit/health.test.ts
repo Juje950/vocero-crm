@@ -50,6 +50,7 @@ describe("features: las banderas de despliegue", () => {
       agenda: false,
       channels: ["whatsapp"],
       atribucion: false,
+      servicios: false,
     });
   });
 
@@ -60,11 +61,13 @@ describe("features: las banderas de despliegue", () => {
         AGENDA: "on",
         CHANNELS: "messenger, Instagram",
         ATRIBUCION: "1",
+        SERVICIOS: "sí",
       })
     ).toEqual({
       agenda: true,
       channels: ["whatsapp", "instagram", "messenger"],
       atribucion: true,
+      servicios: true,
     });
   });
 
@@ -72,8 +75,13 @@ describe("features: las banderas de despliegue", () => {
     // Mismos parsers que usan las rutas para responder 404: si aquí dijera
     // `true` y la agenda respondiera 404, el health mentiría.
     expect(
-      healthFeatures({ AGENDA: "onn", CHANNELS: "telegram", ATRIBUCION: "off" })
-    ).toEqual({ agenda: false, channels: ["whatsapp"], atribucion: false });
+      healthFeatures({
+        AGENDA: "onn",
+        CHANNELS: "telegram",
+        ATRIBUCION: "off",
+        SERVICIOS: "servicios",
+      })
+    ).toEqual({ agenda: false, channels: ["whatsapp"], atribucion: false, servicios: false });
   });
 });
 

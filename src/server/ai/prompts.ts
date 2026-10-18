@@ -1,4 +1,6 @@
 import type { schema } from "@/lib/db";
+import { formatMoneyCents } from "@/lib/money";
+import { formatDuration, type ServiceDto } from "@/lib/servicios";
 
 type AgentProfile = typeof schema.agentProfile.$inferSelect;
 type KbEntry = typeof schema.kbEntry.$inferSelect;
@@ -16,6 +18,34 @@ export function renderKb(entries: KbEntry[]): string {
     )
     .filter(Boolean)
     .join("\n\n");
+}
+
+/** 031 — Encabezado del catálogo en el prompt (el ai-mock lo busca). */
+export const CABECERA_CATALOGO = "CATÁLOGO DE SERVICIOS";
+
+/**
+ * 031 — El catálogo de servicios como lo lee el agente. Solo los activos: un
+ * servicio pausado no se ofrece. Cada renglón lleva el precio formateado en la
+ * moneda del negocio, la duración y la seña con su saldo, para que el modelo
+ * no tenga que hacer cuentas (las cuentas del modelo son las que fallan).
+ */
+export function renderServicios(services: ServiceDto[], currency: string): string {
+  const activos = services.filter((s) => s.active);
+  if (activos.length === 0) return "";
+  return activos
+    .map((s) => {
+      const partes = [`${s.name}: ${formatMoneyCents(s.priceCents, currency)}`];
+      const duracion = formatDuration(s.durationMinutes);
+      if (duracion) partes.push(`dura ${duracion}`);
+      if (s.depositCents !== null) {
+        partes.push(
+          `seña para reservar ${formatMoneyCents(s.depositCents, currency)} (saldo ${formatMoneyCents(s.priceCents - s.depositCents, currency)})`
+        );
+      }
+      const linea = `- ${partes.join(" · ")}`;
+      return s.description ? `${linea}\n  ${s.description}` : linea;
+    })
+    .join("\n");
 }
 
 /**
@@ -40,8 +70,16 @@ export function buildAgentSystemPrompt(input: {
    * token en hablar de horarios: la agenda no existe aquí.
    */
   agenda?: boolean;
+  /**
+   * 031 — Catálogo de servicios, solo con el módulo SERVICIOS encendido. Sin
+   * él (o vacío), el prompt no menciona servicios: el módulo no existe aquí.
+   */
+  servicios?: { services: ServiceDto[]; currency: string };
 }): string {
   const { profile } = input;
+  const catalogo = input.servicios
+    ? renderServicios(input.servicios.services, input.servicios.currency)
+    : "";
   const stageNames = input.stages.map((s) => s.name).join(" | ");
   const agendaLines = input.agenda
     ? [
@@ -65,6 +103,9 @@ export function buildAgentSystemPrompt(input: {
       : null,
     profile.greeting ? `Saludo sugerido para conversaciones nuevas: ${profile.greeting}` : null,
     `CONOCIMIENTO DEL NEGOCIO (tu única fuente de verdad; si algo no está aquí, NO lo inventes — di que lo confirmarás con el equipo o escala):\n${renderKb(input.kb)}`,
+    catalogo
+      ? `${CABECERA_CATALOGO} (precios oficiales del negocio; úsalos tal cual, no los redondees ni inventes otros, y no ofrezcas servicios que no estén aquí):\n${catalogo}`
+      : null,
     `Etapas del pipeline disponibles: ${stageNames}`,
     [
       "En cada turno respondes ÚNICAMENTE un objeto JSON con UNA acción:",

@@ -5,6 +5,23 @@ sigue el SemVer del [README](README.md#versiones): una menor trae funciones
 nuevas y actualizar es redesplegar. Desde 1.4.0, cada tag `vX.Y.Z` publica la
 imagen `ghcr.io/kevinrivm/vocero-crm:X.Y.Z`.
 
+## Sin publicar
+
+### Módulo de Servicios (`SERVICIOS=on`, apagado por defecto)
+
+- **Catálogo de servicios**: nombre, precio, duración y seña para reservar,
+  en una pantalla nueva del grupo «Negocio». Se pausa un servicio sin
+  borrarlo. Solo quien administra cambia precios; el equipo los consulta.
+- **El agente cotiza desde el catálogo**: recibe los servicios activos con
+  precio, duración, seña y saldo ya calculados, y no inventa precios. El juez
+  del Laboratorio compara contra el mismo catálogo.
+- **Ajustes → Módulos**: qué módulos tiene encendidos la instancia y qué
+  variable enciende cada uno.
+- `/api/health` suma `features.servicios`.
+
+**Actualizar**: la migración `0021_modulo_servicios` corre sola al arrancar y
+crea una tabla vacía. Sin `SERVICIOS=on` nada cambia para el usuario.
+
 ## 1.6.0 — 2026-10-14
 
 La versión multicanal. Instagram, Messenger y ahora TikTok llegan a la misma

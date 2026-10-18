@@ -68,6 +68,7 @@ Banderas de despliegue (apagadas por defecto; su código viaja siempre en `main`
 |---|---|
 | `AGENDA=on` | Motor de citas: pantalla Citas, Ajustes → Agenda, `/api/bookings`, `/api/calendar/*`, `/api/bot/availability` y `/api/bot/bookings`, instrucciones de agendar en el prompt del agente (`src/server/agenda/flag.ts`) |
 | `CHANNELS=whatsapp,instagram,messenger,tiktok` | Canales extra: webhooks `/api/webhooks/ig`, `/api/webhooks/messenger` y `/api/webhooks/tiktok`, Ajustes → Estado, Instagram, Messenger y TikTok, credenciales por canal, distintivo en la bandeja (`src/server/channels/enabled.ts`) |
+| `SERVICIOS=on` | 031 — Catálogo de servicios (precio, duración, seña): pantalla Servicios en el grupo «Negocio» del menú, `/api/services` y el catálogo de servicios activos dentro del prompt del agente y del juez del Laboratorio (`src/server/servicios/flag.ts`). Ajustes → Módulos lista los módulos y su variable (`src/lib/modules.ts`) |
 | `ATRIBUCION=on` | Guardado del `ctwa_clid`, reporte a la Conversions API de Meta, Ajustes → Anuncios y `/api/settings/capi` (`src/server/attribution/flag.ts`). El anuncio de origen se ve siempre, con o sin bandera |
 
 Apagada, cada superficie responde 404 (no 403). El despliegue en producción está en el README («Instalación»: Rutas A y B, y «Otras plataformas» con `render.yaml`, `fly.toml` y `railway.toml`) y en `INSTALL-IA.md`; no se repite aquí.
@@ -97,6 +98,7 @@ Apagada, cada superficie responde 404 (no 403). El despliegue en producción est
 | `messenger/` | Adaptador del canal de Messenger (Meta o Zernio), tras `CHANNELS` | `ingest.ts`, `send.ts`, `credentials.ts` |
 | `tiktok/` | 022 — Adaptador del canal de TikTok (solo Zernio), tras `CHANNELS` | `ingest.ts`, `send.ts`, `credentials.ts` |
 | `onboarding/` | Guía de inicio: qué falta para que el agente conteste (perfil, IA, WhatsApp y, con `AGENDA`, agenda), los pasos que ve el dueño y si la guía es la primera pantalla (`guideFirst`) | `status.ts`, `guide.ts`, `calendar-verifiers.ts` |
+| `servicios/` | 031 — Módulo de Servicios tras `SERVICIOS`: bandera, lectura/escritura del catálogo con `scoped()`, lógica de `/api/services` (403 a miembros al escribir) y el catálogo que recibe el agente | `flag.ts`, `store.ts`, `http.ts`, `agent.ts` |
 | `seed/` | Negocio demo idempotente «Ferretería El Martillo» | `demo.ts` |
 | `whatsapp/` | Credenciales cifradas, prueba de conexión y suscripción del webhook, media, plantillas | `credentials.ts`, `connect.ts`, `media.ts`, `templates.ts` |
 | `zernio/` | Transporte y firma de la API unificada de Zernio; reparte cada evento al canal que toca. 023 — resuelve la cuenta contra `GET /accounts` al guardar, da de alta el webhook limitado a las cuentas de la organización, y verifica la firma contra los secretos guardados y los que Zernio tiene para esta instancia. 030 — el secreto de firma se guarda cifrado, como el token; el arranque cifra el que una versión anterior dejó en claro | `index.ts`, `dispatch.ts`, `cuentas.ts`, `webhooks.ts`, `conexiones.ts`, `guardar.ts`, `secreto-guardado.ts` |

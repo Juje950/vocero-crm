@@ -42,6 +42,7 @@ services:
       CHANNELS: ${CHANNELS:-}
       AGENDA: ${AGENDA:-}
       ATRIBUCION: ${ATRIBUCION:-}
+      SERVICIOS: ${SERVICIOS:-}
       BOT_API_KEY: ${BOT_API_KEY:-}
       BRAIN_HEALTH_URL: ${BRAIN_HEALTH_URL:-}
     volumes:

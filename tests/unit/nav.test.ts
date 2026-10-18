@@ -37,6 +37,19 @@ describe("barra lateral agrupada", () => {
     expect(trabajo!.items.at(-1)!.href).toBe("/bookings");
   });
 
+  it("SERVICIOS abre el grupo Negocio entre Trabajo y Agente", () => {
+    const groups = appNavGroups({ servicios: true, role: "member" });
+    expect(groups.map((g) => g.title)).toEqual(["Trabajo", "Negocio", "Agente", undefined]);
+    expect(groups[1]!.items).toEqual([
+      expect.objectContaining({ href: "/services", label: "Servicios" }),
+    ]);
+  });
+
+  it("sin módulos de negocio no hay grupo Negocio vacío", () => {
+    const titles = appNavGroups({ agenda: true, role: "owner" }).map((g) => g.title);
+    expect(titles).not.toContain("Negocio");
+  });
+
   it("la guía de inicio abre el grupo Agente solo para quien configura", () => {
     for (const role of ["owner", "admin"]) {
       const agente = appNavGroups({ role })[1]!;
@@ -76,7 +89,7 @@ describe("ajustes en tres secciones", () => {
     expect(links(sections)).toEqual({
       Canales: ["WhatsApp"],
       Agente: ["IA"],
-      Negocio: ["Marca", "Plantillas", "Equipo"],
+      Negocio: ["Marca", "Plantillas", "Equipo", "Módulos"],
     });
   });
 
@@ -85,7 +98,7 @@ describe("ajustes en tres secciones", () => {
     expect(links(settingsSections({ messenger: true }))).toEqual({
       Canales: ["Estado", "WhatsApp", "Messenger"],
       Agente: ["IA"],
-      Negocio: ["Marca", "Plantillas", "Equipo"],
+      Negocio: ["Marca", "Plantillas", "Equipo", "Módulos"],
     });
     expect(links(settingsSections({ instagram: true })).Canales).toEqual([
       "Estado",
@@ -98,12 +111,12 @@ describe("ajustes en tres secciones", () => {
     expect(links(settingsSections({ agenda: true }))).toEqual({
       Canales: ["WhatsApp"],
       Agente: ["IA", "Agenda"],
-      Negocio: ["Marca", "Plantillas", "Equipo"],
+      Negocio: ["Marca", "Plantillas", "Equipo", "Módulos"],
     });
     expect(links(settingsSections({ atribucion: true }))).toEqual({
       Canales: ["WhatsApp"],
       Agente: ["IA"],
-      Negocio: ["Marca", "Plantillas", "Equipo", "Anuncios"],
+      Negocio: ["Marca", "Plantillas", "Equipo", "Anuncios", "Módulos"],
     });
   });
 
@@ -131,6 +144,7 @@ describe("ajustes en tres secciones", () => {
         "/settings/templates",
         "/settings/team",
         "/settings/ads",
+        "/settings/modules",
       ].sort()
     );
   });

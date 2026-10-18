@@ -1267,3 +1267,50 @@ export const dispatch = pgTable(
     index("dispatch_status_notbefore_idx").on(t.status, t.notBefore),
   ]
 );
+
+/* ============================================================
+ * 031 — Módulo de Servicios (bandera SERVICIOS)
+ * ============================================================ */
+
+/**
+ * Catálogo de lo que el negocio vende: un corte, una sesión, un plan
+ * mensual. Es la pieza común de los módulos de negocio: las señas de un
+ * turno, una membresía o el balance del mes cuelgan de un servicio.
+ *
+ * Dinero en CENTAVOS ENTEROS, como en todo el CRM (`lib/money.ts`). La moneda
+ * no se guarda aquí: es la del negocio (Ajustes → Marca), igual que el monto
+ * de un lead sin moneda propia.
+ *
+ * `depositCents` es la seña que se pide para reservar; nula = no pide seña.
+ * Nunca supera el precio (lo cuida el CHECK, no solo la UI).
+ */
+export const service = pgTable(
+  "service",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    priceCents: integer("price_cents").notNull(),
+    durationMinutes: integer("duration_minutes"),
+    depositCents: integer("deposit_cents"),
+    active: boolean("active").notNull().default(true),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("service_org_idx").on(t.organizationId, t.position),
+    check("service_price_nonneg", sql`${t.priceCents} >= 0`),
+    check(
+      "service_deposit_range",
+      sql`${t.depositCents} IS NULL OR (${t.depositCents} >= 0 AND ${t.depositCents} <= ${t.priceCents})`
+    ),
+    check(
+      "service_duration_pos",
+      sql`${t.durationMinutes} IS NULL OR ${t.durationMinutes} > 0`
+    ),
+  ]
+);

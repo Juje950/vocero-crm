@@ -38,6 +38,10 @@ export const envSchema = z.object({
   // conversacion, no se le reporta nada a Meta y la superficie da 404.
   // Ej.: ATRIBUCION=on
   ATRIBUCION: z.string().optional(),
+  // 031: modulo de Servicios (catalogo con precio, duracion y seña). Apagado
+  // por defecto: sin el, la pantalla y /api/services responden 404 y el
+  // agente no recibe el catalogo. Ej.: SERVICIOS=on
+  SERVICIOS: z.string().optional(),
   // 015: bases de los conectores. Solo se sobreescriben para apuntar a los
   // mocks en el self-test; en producción se usan las reales.
   ZOOM_BASE_URL: z.string().url().default("https://api.zoom.us/v2"),

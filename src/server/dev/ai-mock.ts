@@ -1,4 +1,4 @@
-import { JUDGE_MARKER } from "@/server/ai/prompts";
+import { CABECERA_CATALOGO, JUDGE_MARKER } from "@/server/ai/prompts";
 import { CABECERA_HUECOS } from "@/server/agenda/offers";
 
 /**
@@ -161,6 +161,24 @@ export function aiMockCompletion(messages: InMessage[]): string {
       startUtc: huecos[0],
       reply: "¡Listo! Te agendé.",
     });
+  }
+
+  /**
+   * 031 — Precios desde el catálogo de servicios, como un modelo real: solo si
+   * el prompt trae el catálogo, y copiando el renglón tal cual. Con el módulo
+   * apagado el catálogo no llega y esta rama no existe — que es lo que el
+   * self-test necesita ver para saber que el catálogo viaja en el turno.
+   */
+  const catalogo = system.split(CABECERA_CATALOGO)[1]?.split("\n\n")[0] ?? "";
+  if (catalogo && /cu[aá]nto|precio|cuesta|sale/.test(text)) {
+    const palabras = text.split(/[^a-záéíóúñü]+/).filter((w) => w.length > 4);
+    const renglon = catalogo
+      .split("\n")
+      .filter((l) => l.startsWith("- "))
+      .find((l) => palabras.some((w) => l.toLowerCase().includes(w)));
+    if (renglon) {
+      return JSON.stringify({ action: "reply", text: `Te paso el precio: ${renglon.slice(2)}` });
+    }
   }
 
   // Persona pide_humano (el regex de respaldo captura la frase canónica; esta

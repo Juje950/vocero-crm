@@ -3,7 +3,8 @@ import { getDb, schema } from "@/lib/db";
 import { newId } from "@/lib/db/ids";
 import { publish } from "@/server/events/bus";
 import { runAgentTurn } from "@/server/ai/pipeline";
-import { renderKb } from "@/server/ai/prompts";
+import { renderKb, renderServicios } from "@/server/ai/prompts";
+import { catalogoParaAgente } from "@/server/servicios/agent";
 import { computeScore, judgeCase } from "@/server/lab/judge";
 import { PERSONAS, type Persona } from "@/server/lab/personas";
 
@@ -90,7 +91,13 @@ async function runAllCases(
     .select()
     .from(schema.kbEntry)
     .where(eq(schema.kbEntry.organizationId, organizationId));
-  const kbText = renderKb(kbEntries);
+  // 031 — El juez compara contra lo MISMO que sabe el agente: con el módulo
+  // de Servicios, un precio del catálogo no es una alucinación.
+  const catalogo = await catalogoParaAgente(organizationId);
+  const catalogoText = catalogo ? renderServicios(catalogo.services, catalogo.currency) : "";
+  const kbText = catalogoText
+    ? `${renderKb(kbEntries)}\n\nCATÁLOGO DE SERVICIOS:\n${catalogoText}`
+    : renderKb(kbEntries);
 
   const profileRows = await db
     .select()

@@ -130,6 +130,54 @@ const DEMO_KB: { kind: "qa" | "block"; question?: string; answer?: string; conte
   // HUECO INTENCIONAL: nada sobre garantías ni devoluciones (lo encuentra el Laboratorio).
 ];
 
+/**
+ * 031 — Servicios de la ferretería para el módulo SERVICIOS. Se siembran
+ * siempre (la tabla existe en toda instancia, y vacía o llena es inerte con
+ * el módulo apagado): encender la bandera después muestra un catálogo con
+ * qué jugar, sin volver a cargar la demo. Uno pausado, para que se vea que
+ * pausar lo saca de lo que sabe el agente.
+ */
+const DEMO_SERVICES: {
+  name: string;
+  description?: string;
+  priceCents: number;
+  durationMinutes?: number;
+  depositCents?: number;
+  active?: boolean;
+}[] = [
+  {
+    name: "Corte de madera a medida",
+    description: "Tableros de MDF, triplay o pino. Precio por tablero, hasta 6 cortes.",
+    priceCents: 8_000,
+    durationMinutes: 30,
+  },
+  {
+    name: "Duplicado de llaves",
+    description: "Llave sencilla o de doble paleta, en el momento.",
+    priceCents: 4_500,
+    durationMinutes: 10,
+  },
+  {
+    name: "Igualado de pintura",
+    description: "Traes una muestra y te preparamos el color exacto en cubeta o galón.",
+    priceCents: 12_000,
+    durationMinutes: 45,
+  },
+  {
+    name: "Instalación eléctrica básica a domicilio",
+    description: "Contactos, apagadores o lámparas. Hasta 3 puntos por visita.",
+    priceCents: 65_000,
+    durationMinutes: 120,
+    depositCents: 20_000,
+  },
+  {
+    name: "Renta de rotomartillo por día",
+    priceCents: 35_000,
+    depositCents: 15_000,
+    active: false,
+  },
+];
+
 export async function seedDemo(
   db: Db,
   organizationId: string
@@ -248,6 +296,24 @@ export async function seedDemo(
       question: entry.question ?? null,
       answer: entry.answer ?? null,
       content: entry.content ?? null,
+    });
+  }
+
+  // --- 031: Servicios (idempotente: reemplaza el catálogo de la organización) ---
+  await db
+    .delete(schema.service)
+    .where(eq(schema.service.organizationId, organizationId));
+  for (const [position, svc] of DEMO_SERVICES.entries()) {
+    await db.insert(schema.service).values({
+      id: newId("service"),
+      organizationId,
+      name: svc.name,
+      description: svc.description ?? null,
+      priceCents: svc.priceCents,
+      durationMinutes: svc.durationMinutes ?? null,
+      depositCents: svc.depositCents ?? null,
+      active: svc.active ?? true,
+      position,
     });
   }
 
